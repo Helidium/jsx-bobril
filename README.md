@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # MSX Optimized
 
 *The current version of MSX Optimized is based on version 0.12.2 of React's JSX Transformer.*
@@ -153,3 +154,7 @@ is provided, which implements an `msxTransform()` step using `msx-optimized.tran
 * [msx-loader](https://github.com/sdemjanenko/msx-loader) - webpack loader.
 
 ## MIT Licensed
+=======
+# jsx-bobril
+Bobril template transformer
+>>>>>>> 11b9c6531cc7d56504be32bfcb77082ce3f663ef
