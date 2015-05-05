@@ -45,7 +45,7 @@ function isTagName(name) {
 
 var mParts = {
   // We assume that the Mithril runtime is already in scope
-  startTag: 'm(',
+  startTag: 'b(',
   endTag: ')',
   startAttrs: ', ',
   startChildren: ', ['
@@ -55,8 +55,6 @@ var precompileParts = {
   startTag: '{tag: ',
   endTag: '}',
   startAttrs: ', attrs: ',
-  startStyle: ', style: ',
-  startClass: ', className: ',
   startChildren: ', children: ['
 };
 
