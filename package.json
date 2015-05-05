@@ -1,0 +1,60 @@
+{
+  "name": "msx-optimized",
+  "version": "0.3.0",
+  "description": "JSX for Mithril optimized",
+  "main": "main.js",
+  "dependencies": {
+    "commoner": "^0.10.0",
+    "jstransform": "^8.2.0"
+  },
+  "devDependencies": {
+    "gulp": "~3.8.10",
+    "gulp-plumber": "^0.6.6",
+    "gulp-util": "~3.0.2",
+    "tape": "^3.4.0",
+    "through2": "~0.6.3"
+  },
+  "keywords": [
+    "jsx",
+    "mithril",
+    "mithril optimized"
+  ],
+  "author": {
+    "name": "Marko Biskup",
+    "email": "marko.biskup@helidium.net",
+    "url": "https://github.com/helidium"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/helidium/msx-optimized.git"
+  },
+  "licenses": [
+    {
+      "type": "Apache-2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0"
+    },
+    {
+      "type": "MIT",
+      "url": "https://github.com/helidium/msx-optimized/LICENSE"
+    }
+  ],
+  "scripts": {
+    "test": "node test/tests.js"
+  },
+  "bin": {
+    "msx-optimized": "./bin/msx-optimized"
+  },
+  "bugs": {
+    "url": "https://github.com/helidium/msx-optimized/issues"
+  },
+  "homepage": "https://github.com/helidium/msx-optimized",
+  "directories": {
+    "test": "test"
+  },
+  "license": "MIT",
+  "readme": "# MSX Optimized\n\n*The current version of MSX Optimized is based on version 0.12.2 of React's JSX Transformer.*\n\nMSX tweaks [React](http://facebook.github.io/react/)'s JSX Transformer to output\ncontents compatible with [Mithril](http://lhorie.github.io/mithril/)'s\n`m.render()` function, allowing you to use HTML-like syntax in your Mithril\ntemplates, like this:\n\n```html\nvar todos = ctrl.list.map(function(task, index) {\n  return <li className={task.completed() && 'completed'}>\n    <div className=\"view\">\n      <input\n        className=\"toggle\"\n        type=\"checkbox\"\n        onclick={m.withAttr('checked', task.completed)}\n        checked={task.completed()}\n      />\n      <label>{task.title()}</label>\n      <button className=\"destroy\" onclick={ctrl.remove.bind(ctrl, index)}/>\n    </div>\n    <input className=\"edit\"/>\n  </li>\n})\n```\n\nBy default, raw virtual DOM objects - matching the\n[`VirtualElement` signature](http://lhorie.github.io/mithril/mithril.render.html#signature)\naccepted by `m.render()` - will be generated for known tag names. This\neffectively [precompiles](http://lhorie.github.io/mithril/optimizing-performance.html)\nyour templates for a slight performance tweak.\n\nFor unknown tag names, an `m()` call will always be generated. This should allow\nyou to use MSX if you're also using\n[Mithril.Elements](https://github.com/philtoms/mithril.elements) to implement\ncustom types.\n\nIf you make use of [JSX Spread Attributes](http://facebook.github.io/react/docs/jsx-spread.html),\nthe resulting code will make use of `Object.assign()` to merge attributes - if\nyour code needs to run in environments which don't implement `Object.assign`\nnatively, you're responsible for ensuring it's available via a\n[shim](https://github.com/ljharb/object.assign), or otherwise.\n\nOther than that, the rest of React's JSX documentation should still apply:\n\n* [JSX in Depth](http://facebook.github.io/react/docs/jsx-in-depth.html)\n* [JSX Spread Attributes](http://facebook.github.io/react/docs/jsx-spread.html)\n* [JSX Gotchas](http://facebook.github.io/react/docs/jsx-gotchas.html) - with\n  the exception of `dangerouslySetInnerHTML`: use\n  [`m.trust()`](http://lhorie.github.io/mithril/mithril.trust.html) on contents\n  instead.\n* [If-Else in JSX](http://facebook.github.io/react/tips/if-else-in-JSX.html)\n\n### In-browser JSX Transform\n\nFor development and quick prototyping, an in-browser MSX transform is available.\n\nDownload or use it directly from cdn.rawgit.com:\n\n* https://cdn.rawgit.com/helidium/msx-optimized/master/dist/MSXTransformer.js\n\nSimply include a `<script type=\"text/msx\">` tag to engage the MSX transformer. \n\nTo enable ES6 transforms, use `<script type=\"text/msx;harmony=true\">`. Check out\nthe [source](https://github.com/insin/msx/blob/master/demo/index.html) of the\n[live example of using in-browser JSX + ES6 transforms](http://insin.github.io/msx/).\n\nHere's a handy template you can use:\n\n```html\n<meta charset=\"UTF-8\">\n<script src=\"https://cdnjs.cloudflare.com/ajax/libs/mithril/0.1.30/mithril.js\"></script>\n<script src=\"https://cdn.rawgit.com/helidium/msx-optimized/master/dist/MSXTransformer.js\"></script>\n<script type=\"text/msx;harmony=true\">void function() { 'use strict';\n\nvar Hello = {\n  controller() {\n    this.who = m.prop('World')\n  },\n\n  view(ctrl) {\n    return <h1>Hello {ctrl.who()}!</h1>\n  }\n}\n\nm.module(document.body, Hello)\n\n}()</script>\n```\n\n### Command Line Usage\n\n```\nnpm install -g msx-optimized\n```\n\n```\nmsx-optimized --watch src/ build/\n```\n\nTo disable precompilation from the command line, pass a `--no-precompile` flag.\n\nRun `msx-optimized --help` for more information.\n\n### Module Usage\n\n```\nnpm install msx-optimized\n```\n\n```javascript\nvar msx = require('msx-optimized')\n```\n\n#### Module API\n\n##### `msx-optimized.transform(source: String[, options: Object])`\n\nTransforms XML-like syntax in the given source into object literals compatible\nwith Mithril's `m.render()` function, or to function calls using Mithril's\n`m()` function, returning the transformed source.\n\nTo enable [ES6 transforms supported by JSX Transformer](http://kangax.github.io/compat-table/es6/#jsx),\npass a `harmony` option:\n\n```javascript\nmsx-optimized.transform(source, {harmony: true})\n```\n\nTo disable default precompilation and always output `m()` calls, pass a\n`precompile` option:\n\n```javascript\nmsx-optimized.transform(source, {precompile: false})\n```\n\n### Examples\n\nExample inputs (using some ES6 features) and outputs are in\n[test/jsx](https://github.com/helidium/msx-optimized/tree/master/test/jsx) and\n[test/js](https://github.com/helidium/msx-optimized/tree/master/test/js), respectively.\n\nAn example [gulpfile.js](https://github.com/helidium/msx-optimized/blob/master/gulpfile.js)\nis provided, which implements an `msxTransform()` step using `msx-optimized.transform()`.\n\n## Related Modules\n\n* [msx](https://github.com/insin/msx) - forked plugin.\n* [gulp-msx](https://github.com/insin/gulp-msx) - gulp plugin.\n* [grunt-msx](https://github.com/hung-phan/grunt-msx) - grunt plugin.\n* [mithrilify](https://github.com/sectore/mithrilify) - browserify transform.\n* [msx-loader](https://github.com/sdemjanenko/msx-loader) - webpack loader.\n\n## MIT Licensed\n",
+  "readmeFilename": "README.md",
+  "_id": "msx-optimized@0.3.0",
+  "_shasum": "70340c25b276d0519d7ec6422dcdcbc4f475712e",
+  "_from": "msx-optimized@*"
+}
