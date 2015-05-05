@@ -35,37 +35,6 @@ To disable precompilation from the command line, pass a `--no-precompile` flag.
 
 Run `jsx-bobril --help` for more information.
 
-### Module Usage
-
-```
-npm install jsx-bobril
-```
-
-```javascript
-var bsx = require('jsx-bobril')
-```
-
-#### Module API
-
-##### `jsx-bobril.transform(source: String[, options: Object])`
-
-Transforms XML-like syntax in the given source into object literals compatible
-with Bobril's render function.
-
-To enable [ES6 transforms supported by JSX Transformer](http://kangax.github.io/compat-table/es6/#jsx),
-pass a `harmony` option:
-
-```javascript
-jsx-bobril.transform(source, {harmony: true})
-```
-
-To disable default precompilation and always output `b()` calls, pass a
-`precompile` option:
-
-```javascript
-jsx-bobril.transform(source, {precompile: false})
-```
-
 ## Related Modules
 
 * [msx](https://github.com/insin/msx) - forked plugin.
