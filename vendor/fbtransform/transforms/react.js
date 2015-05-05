@@ -45,7 +45,7 @@ function isTagName(name) {
 
 var mParts = {
   // We assume that the Mithril runtime is already in scope
-  startTag: 'b(',
+  startTag: 'br(',
   endTag: ')',
   startAttrs: ', ',
   startChildren: ', ['
@@ -106,6 +106,8 @@ function visitReactTag(precompile, traverse, object, path, state) {
   utils.move(nameObject.range[1], state);
   
   var movedAttrs = [];
+  var lastAttr = null;
+  if( attributesObject.length ) lastAttr = attributesObject[ attributesObject.length - 1 ];
   
   var builtAttributes = [];
   for(var a=0; a<attributesObject.length; a++) {
@@ -173,14 +175,14 @@ function visitReactTag(precompile, traverse, object, path, state) {
       utils.catchup(attr.range[0], state, stripNonWhiteParen);
       // Plus 1 to skip `{`.
       utils.move(attr.range[0] + 1, state);
-      utils.catchup(attr.argument.range[0], state, stripNonWhiteParen);
+      //utils.catchup(attr.argument.range[0], state, stripNonWhiteParen);
 
       traverse(attr.argument, path, state);
 
-      utils.catchup(attr.argument.range[1], state);
+      //utils.catchup(attr.argument.range[1], state);
 
       // Move to the end, ignoring parenthesis and the closing `}`
-      utils.catchup(attr.range[1] - 1, state, stripNonWhiteParen);
+      //utils.catchup(attr.range[1] - 1, state, stripNonWhiteParen);
 
       if (!isLast) {
         utils.append(',', state);
@@ -204,7 +206,7 @@ function visitReactTag(precompile, traverse, object, path, state) {
     }
     var name = attr.name.name;
     
-    utils.catchup(attr.range[0], state, trimLeft);
+    //utils.catchup(attr.range[0], state, trimLeft);
 
     if (previousWasSpread) {
       utils.append('{', state);
@@ -222,7 +224,7 @@ function visitReactTag(precompile, traverse, object, path, state) {
     } else {
       utils.move(attr.name.range[1], state);
       // Use catchupNewlines to skip over the '=' in the attribute
-      utils.catchupNewlines(attr.value.range[0], state);
+      //utils.catchupNewlines(attr.value.range[0], state);
       if (attr.value.type === Syntax.Literal) {
         renderXJSLiteral(attr.value, isLast, state);
       } else {
@@ -230,7 +232,7 @@ function visitReactTag(precompile, traverse, object, path, state) {
       }
     }
 
-    utils.catchup(attr.range[1], state, trimLeft);
+    //utils.catchup(attr.range[1], state, trimLeft);
 
     previousWasSpread = false;
 
@@ -238,7 +240,7 @@ function visitReactTag(precompile, traverse, object, path, state) {
   
     if (!openingElement.selfClosing) {
     //utils.catchup(openingElement.range[1] - 1, state, trimLeft);
-    //utils.move(openingElement.range[1], state);
+    utils.move(openingElement.range[1], state);
   }
 
   if (hasAttributes && !previousWasSpread) {
@@ -267,7 +269,7 @@ function visitReactTag(precompile, traverse, object, path, state) {
       utils.catchup(attr.range[0], state, stripNonWhiteParen);
       // Plus 1 to skip `{`.
       utils.move(attr.range[0] + 1, state);
-      utils.catchup(attr.argument.range[0], state, stripNonWhiteParen);
+      //utils.catchup(attr.argument.range[0], state, stripNonWhiteParen);
 
       traverse(attr.argument, path, state);
 
@@ -315,7 +317,7 @@ function visitReactTag(precompile, traverse, object, path, state) {
       }
     }
 
-    utils.catchup(attr.range[1], state, trimLeft);
+    //utils.catchup(attr.range[1], state, trimLeft);
 
     previousWasSpread = false;
 
@@ -325,6 +327,9 @@ function visitReactTag(precompile, traverse, object, path, state) {
     utils.catchup(openingElement.range[1] - 1, state, trimLeft);
     utils.move(openingElement.range[1], state);
   }
+  
+  if( lastAttr )
+      utils.move(lastAttr.range[1] + 1, state);
 
   // filter out whitespace
   var childrenToRender = object.children.filter(function(child) {
