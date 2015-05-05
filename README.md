@@ -2,7 +2,7 @@
 
 *The current version of Bobril JSX is based on version 0.12.2 of React's JSX Transformer.*
 
-For unknown tag names, an `b()` call will always be generated. This should allow
+For unknown tag names, an `br()` call will always be generated. This should allow
 you to use JSX if you're also using
 [BobrilAdapter](https://github.com/Bobris/Bobril/blob/master/examples/jsx/app.js) to implement
 custom types.
@@ -40,5 +40,3 @@ Run `jsx-bobril --help` for more information.
 * [msx](https://github.com/insin/msx) - forked plugin.
 
 ## MIT Licensed
-=======
-# jsx-bobril
