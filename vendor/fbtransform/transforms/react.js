@@ -324,12 +324,12 @@ function visitReactTag(precompile, traverse, object, path, state) {
   });
   
   if (!openingElement.selfClosing) {
-    utils.catchup(openingElement.range[1] - 1, state, trimLeft);
+    //utils.catchup(openingElement.range[1] - 1, state, trimLeft);
     utils.move(openingElement.range[1], state);
   }
   
-  if( lastAttr )
-      utils.move(lastAttr.range[1] + 1, state);
+  /*if( lastAttr )
+      utils.move(lastAttr.range[1] + 1, state);*/
 
   // filter out whitespace
   var childrenToRender = object.children.filter(function(child) {
