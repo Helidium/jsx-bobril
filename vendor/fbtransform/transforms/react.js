@@ -13,7 +13,7 @@ var utils = require('jstransform/src/utils');
 
 var FALLBACK_TAGS = require('./xjs').knownTags;
 var renderXJSExpressionContainer =
-  require('./xjs').renderXJSExpressionContainer;
+	require('./xjs').renderXJSExpressionContainer;
 var renderXJSLiteral = require('./xjs').renderXJSLiteral;
 var quoteAttrName = require('./xjs').quoteAttrName;
 
@@ -34,367 +34,375 @@ var trimLeft = require('./xjs').trimLeft;
  * Removes all non-whitespace/parenthesis characters
  */
 var reNonWhiteParen = /([^\s\(\)])/g;
+
 function stripNonWhiteParen(value) {
-  return value.replace(reNonWhiteParen, '');
+	return value.replace(reNonWhiteParen, '');
 }
 
 var tagConvention = /^[a-z]|\-/;
+
 function isTagName(name) {
-  return tagConvention.test(name);
+	return tagConvention.test(name);
 }
 
 var mParts = {
-  // We assume that the Mithril runtime is already in scope
-  startTag: 'br(',
-  endTag: ')',
-  startAttrs: ', ',
-  startChildren: ', ['
+	// We assume that the Mithril runtime is already in scope
+	startTag: 'br(',
+	endTag: ')',
+	startAttrs: ', ',
+	startChildren: ', ['
 };
 
 var precompileParts = {
-  startTag: '{tag: ',
-  endTag: '}',
-  startAttrs: ', attrs: ',
-  startChildren: ', children: ['
+	startTag: '{tag: ',
+	endTag: '}',
+	startAttrs: ', attrs: ',
+	startChildren: ', children: ['
 };
 
 function visitReactTag(precompile, traverse, object, path, state) {
-  var parts = precompile ? precompileParts : mParts;
-  var openingElement = object.openingElement;
-  var nameObject = openingElement.name;
-  var attributesObject = openingElement.attributes;
+	var parts = precompile ? precompileParts : mParts;
+	var openingElement = object.openingElement;
+	var nameObject = openingElement.name;
+	var attributesObject = openingElement.attributes;
 
-  utils.catchup(openingElement.range[0], state, trimLeft);
+	utils.catchup(openingElement.range[0], state, trimLeft);
 
-  if (nameObject.type === Syntax.XJSNamespacedName && nameObject.namespace) {
-    throw new Error('Namespace tags are not supported. JSX is not XML.');
-  }
+	if (nameObject.type === Syntax.XJSNamespacedName && nameObject.namespace) {
+		throw new Error('Namespace tags are not supported. JSX is not XML.');
+	}
 
-  // Identifiers with lower case or hyphens are fallback tags (strings).
-  // XJSMemberExpressions are not.
-  if (nameObject.type === Syntax.XJSIdentifier
-      /* @msx Revisit when Mithril component support lands
-      && isTagName(nameObject.name)
-      */) {
-    // This is a temporary error message to assist upgrades
-    if (!FALLBACK_TAGS.hasOwnProperty(nameObject.name)) {
-      /* @msx Revisit when Mithril component support lands
-      throw new Error(
-        'Lower case component names (' + nameObject.name + ') are no longer ' +
-        'supported in JSX: See http://fb.me/react-jsx-lower-case'
-      );
-      */
-      parts = mParts
-    }
-  } else {
-    // XXX Revisit when Mithril component support lands
-    throw new Error(
-      'Mithril does not currently support passing objects as tag selectors: ' +
-      'See https://lhorie.github.io/mithril/mithril.html#usage'
-    )
-    /* @msx Revisit when Mithril component support lands
-    // Use utils.catchup in this case so we can easily handle
-    // XJSMemberExpressions which look like Foo.Bar.Baz. This also handles
-    // XJSIdentifiers that aren't fallback tags.
-    utils.move(nameObject.range[0], state);
-    utils.catchup(nameObject.range[1], state);
-    */
-  }
+	// Identifiers with lower case or hyphens are fallback tags (strings).
+	// XJSMemberExpressions are not.
+	if (nameObject.type === Syntax.XJSIdentifier
+	/* @msx Revisit when Mithril component support lands
+	 && isTagName(nameObject.name)
+	 */) {
+		// This is a temporary error message to assist upgrades
+		if (!FALLBACK_TAGS.hasOwnProperty(nameObject.name)) {
+			/* @msx Revisit when Mithril component support lands
+			 throw new Error(
+			 'Lower case component names (' + nameObject.name + ') are no longer ' +
+			 'supported in JSX: See http://fb.me/react-jsx-lower-case'
+			 );
+			 */
+			parts = mParts
+		}
+	} else {
+		// XXX Revisit when Mithril component support lands
+		throw new Error(
+			'Mithril does not currently support passing objects as tag selectors: ' +
+			'See https://lhorie.github.io/mithril/mithril.html#usage'
+		)
+		/* @msx Revisit when Mithril component support lands
+		 // Use utils.catchup in this case so we can easily handle
+		 // XJSMemberExpressions which look like Foo.Bar.Baz. This also handles
+		 // XJSIdentifiers that aren't fallback tags.
+		 utils.move(nameObject.range[0], state);
+		 utils.catchup(nameObject.range[1], state);
+		 */
+	}
 
-  utils.append(parts.startTag, state);
-  utils.append('"' + nameObject.name + '"', state);
-  utils.move(nameObject.range[1], state);
-  
-  var movedAttrs = [];
-  var lastAttr = null;
-  if( attributesObject.length ) lastAttr = attributesObject[ attributesObject.length - 1 ];
-  
-  var builtAttributes = [];
-  for(var a=0; a<attributesObject.length; a++) {
-      var attr = attributesObject[a];
-      if( attr.name.name == 'style' ) {
-          movedAttrs.push( attr );
-      } else
-      if( attr.name.name == 'class' ) {
-          attr.name.name = 'className'
-          movedAttrs.push( attr );
-    } else 
-    if( attr.name.name == 'component' ){
-        movedAttrs.push( attr )
-    } else {
-          builtAttributes.push( attr );
-      }
-  }
+	utils.append(parts.startTag, state);
+	utils.append('"' + nameObject.name + '"', state);
+	utils.move(nameObject.range[1], state);
 
-  attributesObject = builtAttributes;
+	var movedAttrs = [];
+	var lastAttr = null;
+	if (attributesObject.length) lastAttr = attributesObject[attributesObject.length - 1];
 
-  var hasAttributes = attributesObject.length;
-  var hasMoved = movedAttrs.length;
+	var builtAttributes = [];
+	for (var a = 0; a < attributesObject.length; a++) {
+		var attr = attributesObject[a];
+		if (attr.name.name == 'style') {
+			movedAttrs.push(attr);
+		} else if (attr.name.name == 'class') {
+			attr.name.name = 'className'
+			movedAttrs.push(attr);
+		} else if (attr.name.name == 'key') {
+			movedAttrs.push(attr);
+		} else if (attr.name.name == 'ref') {
+			movedAttrs.push(attr);
+		} else if (attr.name.name == 'data') {
+			movedAttrs.push(attr);
+		} else if (attr.name.name == 'cfg') {
+			movedAttrs.push(attr);
+		} else if (attr.name.name == 'component') {
+			movedAttrs.push(attr)
+		} else {
+			builtAttributes.push(attr);
+		}
+	}
 
-  var hasAtLeastOneSpreadProperty = attributesObject.some(function(attr) {
-    return attr.type === Syntax.XJSSpreadAttribute;
-  });
-  
-  var hasAtLeastOneMovedSpreadProperty = movedAttrs.some(function(attr) {
-      return attr.type === Syntax.XJSSpreadAttribute;
-});
+	attributesObject = builtAttributes;
 
-  // Mithril expects an "attrs" property on pre-compiled templates
-  if (hasAtLeastOneSpreadProperty || hasAttributes || parts === precompileParts) {
-    utils.append(parts.startAttrs, state)
-  }
+	var hasAttributes = attributesObject.length;
+	var hasMoved = movedAttrs.length;
 
-  if (hasAtLeastOneSpreadProperty) {
-    utils.append('Object.assign({', state);
-  } else if (hasAttributes) {
-    utils.append('{', state);
-  } else if (parts === precompileParts) {
-    utils.append('{}', state);
-  }
+	var hasAtLeastOneSpreadProperty = attributesObject.some(function (attr) {
+		return attr.type === Syntax.XJSSpreadAttribute;
+	});
 
-  // keep track of if the previous attribute was a spread attribute
-  var previousWasSpread = false;  
-  
-  // write attributes
-  attributesObject.forEach(function(attr, index) {
-      if( attr.name.name == 'style') {
-          //utils.catchup( attr.range[1] - 1, state, stripNonWhiteParen );
-          return;
-      }
-      
-    var isLast = index === attributesObject.length - 1;
+	var hasAtLeastOneMovedSpreadProperty = movedAttrs.some(function (attr) {
+		return attr.type === Syntax.XJSSpreadAttribute;
+	});
 
-    if (attr.type === Syntax.XJSSpreadAttribute) {
-      // Close the previous object or initial object
-      if (!previousWasSpread) {
-        utils.append('}, ', state);
-      }
+	// Mithril expects an "attrs" property on pre-compiled templates
+	if (hasAtLeastOneSpreadProperty || hasAttributes || parts === precompileParts) {
+		utils.append(parts.startAttrs, state)
+	}
 
-      // Move to the expression start, ignoring everything except parenthesis
-      // and whitespace.
-      utils.catchup(attr.range[0], state, stripNonWhiteParen);
-      // Plus 1 to skip `{`.
-      utils.move(attr.range[0] + 1, state);
-      //utils.catchup(attr.argument.range[0], state, stripNonWhiteParen);
+	if (hasAtLeastOneSpreadProperty) {
+		utils.append('Object.assign({', state);
+	} else if (hasAttributes) {
+		utils.append('{', state);
+	} else if (parts === precompileParts) {
+		utils.append('{}', state);
+	}
 
-      traverse(attr.argument, path, state);
+	// keep track of if the previous attribute was a spread attribute
+	var previousWasSpread = false;
 
-      //utils.catchup(attr.argument.range[1], state);
+	// write attributes
+	attributesObject.forEach(function (attr, index) {
+		if (attr.name.name == 'style') {
+			//utils.catchup( attr.range[1] - 1, state, stripNonWhiteParen );
+			return;
+		}
 
-      // Move to the end, ignoring parenthesis and the closing `}`
-      //utils.catchup(attr.range[1] - 1, state, stripNonWhiteParen);
+		var isLast = index === attributesObject.length - 1;
 
-      if (!isLast) {
-        utils.append(',', state);
-      }
+		if (attr.type === Syntax.XJSSpreadAttribute) {
+			// Close the previous object or initial object
+			if (!previousWasSpread) {
+				utils.append('}, ', state);
+			}
 
-      utils.move(attr.range[1], state);
+			// Move to the expression start, ignoring everything except parenthesis
+			// and whitespace.
+			utils.catchup(attr.range[0], state, stripNonWhiteParen);
+			// Plus 1 to skip `{`.
+			utils.move(attr.range[0] + 1, state);
+			//utils.catchup(attr.argument.range[0], state, stripNonWhiteParen);
 
-      previousWasSpread = true;
+			traverse(attr.argument, path, state);
 
-      return;
-    }
+			//utils.catchup(attr.argument.range[1], state);
 
-    // If the next attribute is a spread, we're effective last in this object
-    if (!isLast) {
-      isLast = attributesObject[index + 1].type === Syntax.XJSSpreadAttribute;
-    }
+			// Move to the end, ignoring parenthesis and the closing `}`
+			//utils.catchup(attr.range[1] - 1, state, stripNonWhiteParen);
 
-    if (attr.name.namespace) {
-      throw new Error(
-         'Namespace attributes are not supported. JSX is not XML.');
-    }
-    var name = attr.name.name;
-    
-    //utils.catchup(attr.range[0], state, trimLeft);
+			if (!isLast) {
+				utils.append(',', state);
+			}
 
-    if (previousWasSpread) {
-      utils.append('{', state);
-    }
+			utils.move(attr.range[1], state);
 
-    utils.append(quoteAttrName(name), state);
-    utils.append(':', state);
+			previousWasSpread = true;
 
-    if (!attr.value) {
-      state.g.buffer += 'true';
-      state.g.position = attr.name.range[1];
-      if (!isLast) {
-        utils.append(',', state);
-      }
-    } else {
-      utils.move(attr.name.range[1], state);
-      // Use catchupNewlines to skip over the '=' in the attribute
-      //utils.catchupNewlines(attr.value.range[0], state);
-      if (attr.value.type === Syntax.Literal) {
-        renderXJSLiteral(attr.value, isLast, state);
-      } else {
-        renderXJSExpressionContainer(traverse, attr.value, isLast, path, state);
-      }
-    }
+			return;
+		}
 
-    //utils.catchup(attr.range[1], state, trimLeft);
+		// If the next attribute is a spread, we're effective last in this object
+		if (!isLast) {
+			isLast = attributesObject[index + 1].type === Syntax.XJSSpreadAttribute;
+		}
 
-    previousWasSpread = false;
+		if (attr.name.namespace) {
+			throw new Error(
+				'Namespace attributes are not supported. JSX is not XML.');
+		}
+		var name = attr.name.name;
 
-  });
-  
-    if (!openingElement.selfClosing) {
-    //utils.catchup(openingElement.range[1] - 1, state, trimLeft);
-    utils.move(openingElement.range[1], state);
-  }
+		//utils.catchup(attr.range[0], state, trimLeft);
 
-  if (hasAttributes && !previousWasSpread) {
-    utils.append('}', state);
-  }
+		if (previousWasSpread) {
+			utils.append('{', state);
+		}
 
-  if (hasAtLeastOneSpreadProperty) {
-    utils.append(')', state);
-  }
+		utils.append(quoteAttrName(name), state);
+		utils.append(':', state);
 
-  // write attributes
-  if( movedAttrs.length )
-      utils.append(', ', state);
-  
-  movedAttrs.forEach(function(attr, index) {
-    var isLast = index === movedAttrs.length - 1;
+		if (!attr.value) {
+			state.g.buffer += 'true';
+			state.g.position = attr.name.range[1];
+			if (!isLast) {
+				utils.append(',', state);
+			}
+		} else {
+			utils.move(attr.name.range[1], state);
+			// Use catchupNewlines to skip over the '=' in the attribute
+			//utils.catchupNewlines(attr.value.range[0], state);
+			if (attr.value.type === Syntax.Literal) {
+				renderXJSLiteral(attr.value, isLast, state);
+			} else {
+				renderXJSExpressionContainer(traverse, attr.value, isLast, path, state);
+			}
+		}
 
-    if (attr.type === Syntax.XJSSpreadAttribute) {
-      // Close the previous object or initial object
-      if (!previousWasSpread) {
-        utils.append('}, ', state);
-      }
+		//utils.catchup(attr.range[1], state, trimLeft);
 
-      // Move to the expression start, ignoring everything except parenthesis
-      // and whitespace.
-      utils.catchup(attr.range[0], state, stripNonWhiteParen);
-      // Plus 1 to skip `{`.
-      utils.move(attr.range[0] + 1, state);
-      //utils.catchup(attr.argument.range[0], state, stripNonWhiteParen);
+		previousWasSpread = false;
 
-      traverse(attr.argument, path, state);
+	});
 
-      utils.catchup(attr.argument.range[1], state);
+	if (!openingElement.selfClosing) {
+		//utils.catchup(openingElement.range[1] - 1, state, trimLeft);
+		utils.move(openingElement.range[1], state);
+	}
 
-      // Move to the end, ignoring parenthesis and the closing `}`
-      utils.catchup(attr.range[1] - 1, state, stripNonWhiteParen);
+	if (hasAttributes && !previousWasSpread) {
+		utils.append('}', state);
+	}
 
-      if (!isLast) {
-        utils.append(', ', state);
-      }
+	if (hasAtLeastOneSpreadProperty) {
+		utils.append(')', state);
+	}
 
-      utils.move(attr.range[1], state);
+	// write attributes
+	if (movedAttrs.length)
+		utils.append(', ', state);
 
-      previousWasSpread = true;
+	movedAttrs.forEach(function (attr, index) {
+		var isLast = index === movedAttrs.length - 1;
 
-      return;
-    }
+		if (attr.type === Syntax.XJSSpreadAttribute) {
+			// Close the previous object or initial object
+			if (!previousWasSpread) {
+				utils.append('}, ', state);
+			}
 
-    var name = attr.name.name;
-    
-    utils.catchup(attr.range[0], state, trimLeft);
+			// Move to the expression start, ignoring everything except parenthesis
+			// and whitespace.
+			utils.catchup(attr.range[0], state, stripNonWhiteParen);
+			// Plus 1 to skip `{`.
+			utils.move(attr.range[0] + 1, state);
+			//utils.catchup(attr.argument.range[0], state, stripNonWhiteParen);
 
-    if (previousWasSpread) {
-      utils.append('{', state);
-    }
+			traverse(attr.argument, path, state);
 
-    utils.append(quoteAttrName(name), state);
-    utils.append(':', state);
+			utils.catchup(attr.argument.range[1], state);
 
-    if (!attr.value) {
-      state.g.buffer += 'true';
-      state.g.position = attr.name.range[1];
-      if (!isLast) {
-        utils.append(',', state);
-      }
-    } else {
-      utils.move(attr.name.range[1], state);
-      // Use catchupNewlines to skip over the '=' in the attribute
-      utils.catchupNewlines(attr.value.range[0], state);
-      if (attr.value.type === Syntax.Literal) {
-        renderXJSLiteral(attr.value, isLast, state);
-      } else {
-        renderXJSExpressionContainer(traverse, attr.value, isLast, path, state);
-      }
-    }
+			// Move to the end, ignoring parenthesis and the closing `}`
+			utils.catchup(attr.range[1] - 1, state, stripNonWhiteParen);
 
-    //utils.catchup(attr.range[1], state, trimLeft);
+			if (!isLast) {
+				utils.append(', ', state);
+			}
 
-    previousWasSpread = false;
+			utils.move(attr.range[1], state);
 
-  });
-  
-  if (!openingElement.selfClosing) {
-    //utils.catchup(openingElement.range[1] - 1, state, trimLeft);
-    utils.move(openingElement.range[1], state);
-  }
-  
-  /*if( lastAttr )
-      utils.move(lastAttr.range[1] + 1, state);*/
+			previousWasSpread = true;
 
-  // filter out whitespace
-  var childrenToRender = object.children.filter(function(child) {
-    return !(child.type === Syntax.Literal
-             && typeof child.value === 'string'
-             && child.value.match(/^[ \t]*[\r\n][ \t\r\n]*$/));
-  });
+			return;
+		}
 
-  var hasChildren = false;
-  if (childrenToRender.length > 0) {
-    var lastRenderableIndex;
+		var name = attr.name.name;
 
-    childrenToRender.forEach(function(child, index) {
-      if (child.type !== Syntax.XJSExpressionContainer ||
-          child.expression.type !== Syntax.XJSEmptyExpression) {
-        lastRenderableIndex = index;
-      }
-    });
+		utils.catchup(attr.range[0], state, trimLeft);
 
-    if (lastRenderableIndex !== undefined) {
-      utils.append(parts.startChildren, state);
-      hasChildren = true;
-    }
+		if (previousWasSpread) {
+			utils.append('{', state);
+		}
 
-    childrenToRender.forEach(function(child, index) {
-      utils.catchup(child.range[0], state, trimLeft);
+		utils.append(quoteAttrName(name), state);
+		utils.append(':', state);
 
-      var isLast = index >= lastRenderableIndex;
+		if (!attr.value) {
+			state.g.buffer += 'true';
+			state.g.position = attr.name.range[1];
+			if (!isLast) {
+				utils.append(',', state);
+			}
+		} else {
+			utils.move(attr.name.range[1], state);
+			// Use catchupNewlines to skip over the '=' in the attribute
+			utils.catchupNewlines(attr.value.range[0], state);
+			if (attr.value.type === Syntax.Literal) {
+				renderXJSLiteral(attr.value, isLast, state);
+			} else {
+				renderXJSExpressionContainer(traverse, attr.value, isLast, path, state);
+			}
+		}
 
-      if (child.type === Syntax.Literal) {
-        renderXJSLiteral(child, isLast, state);
-      } else if (child.type === Syntax.XJSExpressionContainer) {
-        renderXJSExpressionContainer(traverse, child, isLast, path, state);
-      } else {
-        traverse(child, path, state);
-        if (!isLast) {
-          utils.append(', ', state);
-        }
-      }
+		//utils.catchup(attr.range[1], state, trimLeft);
 
-      utils.catchup(child.range[1], state, trimLeft);
-    });
-  }
+		previousWasSpread = false;
 
-  if (openingElement.selfClosing) {
-    // everything up to />
-    utils.catchup(openingElement.range[1] - 2, state, trimLeft);
-    utils.move(openingElement.range[1], state);
-  } else {
-    // everything up to </ sdflksjfd>
-    utils.catchup(object.closingElement.range[0], state, trimLeft);
-    utils.move(object.closingElement.range[1], state);
-  }
+	});
 
-  if (hasChildren) {
-    utils.append(']', state);
-  }
-  utils.append(parts.endTag, state);
-  return false;
+	if (!openingElement.selfClosing) {
+		//utils.catchup(openingElement.range[1] - 1, state, trimLeft);
+		utils.move(openingElement.range[1], state);
+	}
+
+	/*if( lastAttr )
+	 utils.move(lastAttr.range[1] + 2, state);*/
+
+	// filter out whitespace
+	var childrenToRender = object.children.filter(function (child) {
+		return !(child.type === Syntax.Literal
+		&& typeof child.value === 'string'
+		&& child.value.match(/^[ \t]*[\r\n][ \t\r\n]*$/));
+	});
+
+	var hasChildren = false;
+	if (childrenToRender.length > 0) {
+		var lastRenderableIndex;
+
+		childrenToRender.forEach(function (child, index) {
+			if (child.type !== Syntax.XJSExpressionContainer ||
+				child.expression.type !== Syntax.XJSEmptyExpression) {
+				lastRenderableIndex = index;
+			}
+		});
+
+		if (lastRenderableIndex !== undefined) {
+			utils.append(parts.startChildren, state);
+			hasChildren = true;
+		}
+
+		childrenToRender.forEach(function (child, index) {
+			utils.catchup(child.range[0], state, trimLeft);
+
+			var isLast = index >= lastRenderableIndex;
+
+			if (child.type === Syntax.Literal) {
+				renderXJSLiteral(child, isLast, state);
+			} else if (child.type === Syntax.XJSExpressionContainer) {
+				renderXJSExpressionContainer(traverse, child, isLast, path, state);
+			} else {
+				traverse(child, path, state);
+				if (!isLast) {
+					utils.append(', ', state);
+				}
+			}
+
+			utils.catchup(child.range[1], state, trimLeft);
+		});
+	}
+
+	if (openingElement.selfClosing) {
+		// everything up to />
+		utils.catchup(openingElement.range[1] - 2, state, trimLeft);
+		utils.move(openingElement.range[1], state);
+	} else {
+		// everything up to </ sdflksjfd>
+		utils.catchup(object.closingElement.range[0], state, trimLeft);
+		utils.move(object.closingElement.range[1], state);
+	}
+
+	if (hasChildren) {
+		utils.append(']', state);
+	}
+	utils.append(parts.endTag, state);
+	return false;
 }
 
-visitReactTag.test = function(object, path, state) {
-  return object.type === Syntax.XJSElement;
+visitReactTag.test = function (object, path, state) {
+	return object.type === Syntax.XJSElement;
 };
 
 exports.visitorList = [
-  visitReactTag
+	visitReactTag
 ];
